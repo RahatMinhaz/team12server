@@ -21,12 +21,50 @@ async function run(){
         await client.connect();
         const database = client.db('Team_12');
         const electronicsCollection = database.collection('electronicscollection');
+        const anotherElectronicsCollection = database.collection('electronicscollection2');
+        const customerInfo = database.collection('customersinfo');
+        const customerInfo2 = database.collection('customersinfo2')
 
 
         app.get('/electronicscollection', async(req,res) =>{
             const cursor = electronicsCollection.find({});
             const electronics = await cursor.toArray();
             res.send(electronics);
+        });
+
+        app.get('/customersinfo', async(req,res) =>{
+            const email = req.query.email;
+            const query = {email: email}
+            const cursor = customerInfo.find(query);
+            const orders = await cursor.toArray();
+            res.json(orders);
+        });
+
+        app.post('/customersinfo', async(req,res) =>{
+            const info = req.body;
+            const result = await customerInfo.insertOne(info);
+            res.json(result);
+        });
+
+        app.delete('/customersinfo/:id', async(req,res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await customerInfo.deleteOne(query);
+            res.json(result);
+        });
+
+        app.get('/electronicscollection/:id',async(req,res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const electronic = await electronicsCollection.findOne(query);
+            res.json(electronic);
+        });
+
+        app.delete('/electronicscollection/:id', async(req,res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await electronicsCollection.deleteOne(query);
+            res.json(result);
         });
 
     }
