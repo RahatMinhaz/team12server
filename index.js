@@ -1,6 +1,7 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId;
+const stripe = require('stripe')(process.env.STRIPE_SECRET)
 
 require('dotenv').config();
 const cors = require('cors');
@@ -23,7 +24,8 @@ async function run(){
         const electronicsCollection = database.collection('electronicscollection');
         const anotherElectronicsCollection = database.collection('electronicscollection2');
         const customerInfo = database.collection('customersinfo');
-        const customerInfo2 = database.collection('customersinfo2')
+        const customerInfo2 = database.collection('customersinfo2');
+        const customerCollection = database.collection('customers');
 
 
         app.get('/electronicscollection', async(req,res) =>{
@@ -53,6 +55,33 @@ async function run(){
             res.json(result);
         });
 
+        app.put('/customersinfo/:id', async(req, res) => {
+            const id = req.params.id;
+            const filter = {_id: ObjectId(id)}
+            const updateDoc = { $set: {status: 'shipped'}}
+            const result = await customerInfo.updateOne(filter, updateDoc);
+            res.json(result);
+        });
+
+        app.get('/customersinfo2', async(req,res) =>{
+            const cursor = customerInfo2.find({});
+            const orders2 = await cursor.toArray();
+            res.send(orders2);
+        });
+
+        app.post('/customersinfo2', async(req,res) =>{
+            const info2 = req.body;
+            const result = await customerInfo2.insertOne(info2);
+            res.json(result);
+        });
+
+        app.delete('/customersinfo2/:id', async(req,res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await customerInfo2.deleteOne(query);
+            res.json(result);
+        });
+
         app.get('/electronicscollection/:id',async(req,res) =>{
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
@@ -67,6 +96,50 @@ async function run(){
             res.json(result);
         });
 
+        app.get('/customers/:email', async(req,res) =>{
+            const email = req.params.email;
+            const query={email:email};
+            const user = await usersCollection.findOne(query);
+            let isAdmin = false;
+            if(user?.role === 'admin'){
+                isAdmin = true;
+            }
+            res.json({admin: isAdmin});
+        });
+
+        app.post('/customers', async(req,res) =>{
+            const customer = req.body;
+            const result = await customerCollection.insertOne(customer);
+            res.json(result);
+        });
+
+        app.put('/customers', async(req,res) =>{
+            const customer = req.body;
+            const filter = {email:customer.email};
+            const options = { upsert: true };
+            const updateDoc = {$set:customer};
+            const result = await customerCollection.updateOne(filter,updateDoc,options);
+            res.json(result);
+        });
+
+        app.put('/customers/admin', async(req,res) =>{
+            const customer = req.body;
+            const filter = {email: customer.email};
+            const updateDoc = {$set:{role: 'admin'}};
+            const result = await customerCollection.updateOne(filter,updateDoc);
+            res.json(result);
+        });
+
+        app.post('/create-payment-intent', async (req, res) => {
+            const paymentInfo = req.body;
+            const amount = paymentInfo.price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                currency: 'bdt',
+                amount: amount,
+                payment_method_types: ['card']
+            });
+            res.json({ clientSecret: paymentIntent.client_secret })
+        });
     }
     finally{
 
