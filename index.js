@@ -34,6 +34,12 @@ async function run(){
             res.send(electronics);
         });
 
+        app.post('/electronicscollection', async(req,res) =>{
+            const newItem = req.body;
+            const result = await electronicsCollection.insertOne(newItem);
+            res.json(result);
+        });
+
         app.get('/customersinfo', async(req,res) =>{
             const email = req.query.email;
             const query = {email: email}
