@@ -54,6 +54,13 @@ async function run(){
             res.json(result);
         });
 
+        app.get('/customersinfo/:id',async(req,res) =>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await customerInfo.findOne(query);
+            res.json(result);
+        });
+
         app.delete('/customersinfo/:id', async(req,res) =>{
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
