@@ -125,6 +125,13 @@ async function run(){
             res.send(customerList);
         });
 
+        app.delete('/customers/:id', async(req,res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const result = await customerCollection.deleteOne(query);
+            res.json(result);
+        });
+
         app.put('/customers', async(req,res) =>{
             const customer = req.body;
             const filter = {email:customer.email};
