@@ -119,6 +119,12 @@ async function run(){
             res.json(result);
         });
 
+        app.get('/customers', async(req,res) =>{
+            const cursor = customerCollection.find({});
+            const customerList = await cursor.toArray();
+            res.send(customerList);
+        });
+
         app.put('/customers', async(req,res) =>{
             const customer = req.body;
             const filter = {email:customer.email};
