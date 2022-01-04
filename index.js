@@ -40,6 +40,18 @@ async function run(){
             res.json(result);
         });
 
+        app.post('/electronicscollection2', async(req,res) =>{
+            const newItem2 = req.body;
+            const result = await anotherElectronicsCollection.insertOne(newItem2);
+            res.json(result);
+        });
+
+        app.get('/electronicscollection2', async(req,res) =>{
+            const cursor = anotherElectronicsCollection.find({});
+            const electronics2 = await cursor.toArray();
+            res.send(electronics2);
+        });
+
         app.get('/customersinfo', async(req,res) =>{
             const email = req.query.email;
             const query = {email: email}
